@@ -19,7 +19,9 @@
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
-    "sentinel": "tsx src/sentinel-cli.ts"
+    "sentinel": "tsx src/sentinel-cli.ts",
+    "docs": "npm --prefix docs run dev",
+    "build:docs": "npm --prefix docs run build"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",

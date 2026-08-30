@@ -1,0 +1,64 @@
+---
+title: Quick start
+description: Triage a real pull request in five minutes, with no infrastructure.
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+The fastest way to see Lanekeeper work is a **dry run** against a real pull request: it analyzes everything and prints the results without writing to the PR or notifying anyone.
+
+<Steps>
+
+1. **Clone and install**
+
+   ```bash
+   git clone https://github.com/rmukubvu/lanekeeper.git
+   cd lanekeeper
+   npm install
+   ```
+
+2. **Configure credentials**
+
+   Create a `.env` in the project root (it loads automatically and is gitignored):
+
+   ```bash
+   # Model backend — Claude API shown; see Model providers for OpenRouter/local
+   ANTHROPIC_API_KEY=sk-ant-...
+
+   # GitHub access for the CLI (a PAT with repo read; write if you use --post)
+   GITHUB_TOKEN=ghp_...
+   ```
+
+3. **Dry-run a pull request**
+
+   ```bash
+   npm run triage -- --repo owner/name --pr 123
+   ```
+
+   You'll get the full scorecard (lane, risk/value/urgency scores, risk factors, review focus, fix suggestions), the lane decision with reasons, anchored inline suggestions, and — for large PRs — a guided walkthrough. Nothing has touched GitHub yet.
+
+4. **Post it for real**
+
+   ```bash
+   npm run triage -- --repo owner/name --pr 123 --post
+   ```
+
+   This applies the `lanekeeper/lane:*` and `lanekeeper/risk:*` labels, posts the scorecard and walkthrough as comments (updated in place on re-runs), posts inline suggestion comments, requests reviewers per policy, and notifies configured chat channels.
+
+5. **See the queue**
+
+   Every run — dry or posted — is recorded for the dashboard:
+
+   ```bash
+   npm run build:web   # once
+   npm run dashboard   # http://localhost:4400
+   ```
+
+</Steps>
+
+## Where next
+
+- Tune what the scores *mean* in [Policy as code](/guides/policy/)
+- Run continuously on every PR with the [GitHub App](/guides/github-app/)
+- Scan what already merged with [Sentinel](/guides/sentinel/)
+- Swap the model backend in [Model providers](/guides/providers/)

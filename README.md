@@ -11,6 +11,8 @@ Agentic change management for GitHub. As AI coding agents generate more pull req
 
 Works with github.com and GitHub Enterprise Server (set `GITHUB_API_URL`).
 
+**📖 Documentation:** a full Astro/Starlight docs site lives in [docs/](docs/) — `npm run docs` serves it locally (quick start, feature guides, policy & CLI reference); `npm run build:docs` builds the static site.
+
 ## How it flows
 
 ```

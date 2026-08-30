@@ -1,0 +1,61 @@
+---
+title: Model providers
+description: Claude API, OpenRouter, or fully local models — one interface, the same guarantees.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+The pipeline talks to models through one small interface: a schema-validated structured call (triage, inline review, Sentinel) and a long-form text call (walkthroughs). Anything that can do both can power Lanekeeper — the backend is a config choice, not an architecture change.
+
+<Tabs>
+<TabItem label="Anthropic (default)">
+
+Best quality and **server-validated structured outputs** via the official SDK. Credentials come from `ANTHROPIC_API_KEY` or an `ant auth login` profile.
+
+```bash
+# .env
+LANEKEEPER_PROVIDER=anthropic        # default — can be omitted
+ANTHROPIC_API_KEY=sk-ant-...
+# LANEKEEPER_MODEL=claude-opus-5     # default
+```
+
+</TabItem>
+<TabItem label="OpenRouter">
+
+One key, hundreds of models — useful for calibration comparisons across vendors. Model names are vendor-prefixed.
+
+```bash
+# .env
+LANEKEEPER_PROVIDER=openrouter
+OPENROUTER_API_KEY=sk-or-...
+LANEKEEPER_MODEL=anthropic/claude-opus-5   # default for this provider
+```
+
+</TabItem>
+<TabItem label="Local / gateway">
+
+Any OpenAI-compatible `/v1/chat/completions` server: Ollama, LM Studio, vLLM, or an enterprise LLM gateway. **Nothing leaves your network.**
+
+```bash
+# .env
+LANEKEEPER_PROVIDER=openai-compatible
+OPENAI_COMPAT_BASE_URL=http://localhost:11434/v1
+LANEKEEPER_MODEL=qwen3:32b                 # required — whatever your server exposes
+# OPENAI_COMPAT_API_KEY=                   # usually not needed locally
+```
+
+</TabItem>
+</Tabs>
+
+## How structured output stays reliable everywhere
+
+For non-Anthropic backends, Lanekeeper requests `response_format: json_schema` **and** embeds the schema in the prompt (weaker models comply better with both), automatically retries without `response_format` if the server rejects it, and **always validates the result locally** against the schema. Anything that still fails validation triggers the fail-safe — deep lane, human review — so a weak model can waste attention but never silently mark a change low-risk.
+
+## Choosing a model honestly
+
+Quality tracks capability more than any prompt trick:
+
+- **Frontier models** (Claude Opus) read the full diff, catch removed guards and cross-file issues, and confidently write applyable code fixes in inline suggestions.
+- **Small local models** produce sensible lane decisions and are ideal for demos, keyless testing, and strict data-sovereignty environments — but expect softer calibration, shallower walkthroughs, and more conservative (or dropped) inline suggestions. Their context limits also mean large diffs get truncated views.
+
+The deterministic layers — policy engine, anchor verification, evidence verification, dedupe — behave identically regardless of backend. `LANEKEEPER_MAX_OUTPUT_TOKENS` (default 8192) caps responses on OpenRouter/compatible backends; the Anthropic provider uses tuned per-call limits.

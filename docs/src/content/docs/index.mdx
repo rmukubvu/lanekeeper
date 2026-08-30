@@ -1,0 +1,48 @@
+---
+title: Lanekeeper
+description: Agentic change management for GitHub. AI agents write more code than humans can read — Lanekeeper puts judgment back at the merge gate.
+template: splash
+hero:
+  title: 🛣️ Lanekeeper
+  tagline: Agentic change management for GitHub. AI agents write more code than humans can read — Lanekeeper puts judgment back at the merge gate.
+  actions:
+    - text: Quick start
+      link: /getting-started/quickstart/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/rmukubvu/lanekeeper
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid stagger>
+	<Card title="Triage & lanes" icon="rocket">
+		Every pull request is scored by a model (risk, value, urgency, blast radius, readiness) and
+		routed into a lane — `auto`, `fast`, or `deep`. The model scores; your checked-in policy
+		decides.
+	</Card>
+	<Card title="Guided walkthroughs" icon="open-book">
+		Large diffs become layered explanations — contracts → core logic → integration points →
+		tests — so reviewers read with judgment instead of scrolling a wall of diff.
+	</Card>
+	<Card title="One-click fixes" icon="pencil">
+		Identified risks become inline review comments with GitHub suggestion blocks on the exact
+		diff lines. Every anchor is verified mechanically before posting — misanchored suggestions
+		are dropped, never posted.
+	</Card>
+	<Card title="Sentinel post-merge scans" icon="seti:lock">
+		Every push to the default branch is re-examined with full-file context the PR diff never
+		had. Evidence-verified findings become deduplicated GitHub issues.
+	</Card>
+	<Card title="Your models, your data" icon="setting">
+		Run on the Claude API, OpenRouter, or fully local models (Ollama, vLLM, LM Studio, or an
+		enterprise gateway). The fail-safe design means a weak model can waste attention, but never
+		silently mark a risky change safe.
+	</Card>
+	<Card title="Where your team works" icon="comment">
+		A GitHub-styled dashboard, plus native notifications for Microsoft Teams (Adaptive Cards),
+		Slack (Block Kit), and Discord (embeds). Adding a platform is one interface.
+	</Card>
+</CardGrid>
