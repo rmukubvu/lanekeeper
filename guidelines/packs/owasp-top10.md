@@ -1,0 +1,11 @@
+---
+title: OWASP-aligned security review
+---
+- Broken access control: every new endpoint or query must enforce tenant and role scoping server-side; flag any client-supplied identifier that selects another principal's data.
+- Injection: parameterize all queries and commands; flag string-built SQL, shell, template, or path expressions containing external input.
+- Cryptographic failures: flag home-rolled crypto, ECB mode, static IVs or salts, MD5/SHA-1 for security purposes, and secrets in code, env dumps, or process arguments.
+- SSRF and redirects: outbound URLs derived from user input need allowlists; flag plaintext http:// defaults and localhost fallbacks for sensitive exchanges.
+- Misconfiguration and unsafe defaults: flag permissive CORS, exposed debug endpoints, and silent fallback values that widen authority.
+- Vulnerable dependencies: new, unpinned, or postinstall-scripted dependencies deserve an explicit risk factor.
+- Logging: no secrets or PII in logs or traces; authorization decisions should be auditable.
+- Denial of service: flag unbounded loops or recursion on external input, unbounded polling, and missing timeouts on network calls.

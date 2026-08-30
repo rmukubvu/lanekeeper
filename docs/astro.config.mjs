@@ -27,6 +27,7 @@ export default defineConfig({
 					items: [
 						{ label: 'Triage & lanes', slug: 'guides/triage-and-lanes' },
 						{ label: 'Policy as code', slug: 'guides/policy' },
+						{ label: 'Team standards', slug: 'guides/guidelines' },
 						{ label: 'Guided walkthroughs', slug: 'guides/walkthroughs' },
 						{ label: 'Inline suggestions', slug: 'guides/inline-suggestions' },
 						{ label: 'Sentinel post-merge scans', slug: 'guides/sentinel' },

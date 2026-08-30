@@ -53,6 +53,7 @@ export function renderScorecard(
   assessment: TriageAssessment,
   decision: Decision,
   model: string,
+  guidelineIds: string[] = [],
 ): string {
   const lines = [
     "## 🛣️ Lanekeeper triage",
@@ -86,7 +87,11 @@ export function renderScorecard(
   if (decision.automerge) {
     lines.push("", "✅ Qualifies for auto-merge under the current policy.");
   }
-  lines.push("", `<sub>Categories: ${assessment.categories.join(", ")} · Model: ${model}</sub>`);
+  const guidelineNote = guidelineIds.length > 0 ? ` · Guidelines: ${guidelineIds.join(", ")}` : "";
+  lines.push(
+    "",
+    `<sub>Categories: ${assessment.categories.join(", ")} · Model: ${model}${guidelineNote}</sub>`,
+  );
   return lines.join("\n");
 }
 

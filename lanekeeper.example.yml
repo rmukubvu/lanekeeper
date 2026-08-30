@@ -37,6 +37,18 @@ inline_suggestions:
   enabled: true
   max_comments: 6
 
+# Team & organization review standards, injected into triage, inline review,
+# and Sentinel prompts — only the blocks whose path globs match the change.
+# Layers (highest priority under the budget first): this repo's
+# .lanekeeper/guidelines/*.md, then the org baseline repo, then built-in packs
+# (effective-java, effective-go, react-hooks, owasp-top10). Comments driven by
+# a guideline cite its id, e.g. [repo:error-handling].
+guidelines:
+  enabled: true
+  packs: [] # e.g. [effective-go, react-hooks, owasp-top10]
+  org_repo: "" # e.g. "my-org/.lanekeeper" (reads its guidelines/ directory)
+  max_chars: 6000 # injection budget per agent per run
+
 # Sentinel: post-merge security scan of the default branch. Server mode scans
 # every push's exact commit range; the CLI scans a time window. Findings must
 # cite verbatim evidence (verified mechanically) and become deduplicated

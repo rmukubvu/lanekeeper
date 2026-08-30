@@ -69,6 +69,7 @@ const CONTENT_CHAR_LIMIT = 16_000;
 export async function scanForFindings(
   provider: ModelProvider,
   context: SentinelScanContext,
+  guidelines?: string,
 ): Promise<SentinelFinding[]> {
   const commits = context.commits
     .map((c) => `- ${c.sha.slice(0, 8)} ${c.message.split("\n")[0]}`)
@@ -100,6 +101,7 @@ export async function scanForFindings(
     "",
     "## Recently merged commits",
     commits || "- (none)",
+    ...(guidelines ? ["", guidelines] : []),
     "",
     "## Changed files (diff of the merge window + current content)",
     files,

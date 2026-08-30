@@ -16,6 +16,7 @@ import {
   postInlineReview,
   upsertComment,
 } from "./github.js";
+import { type GuidelineSelection, resolveGuidelines, selectGuidelines } from "./guidelines.js";
 import { decide, defaultPolicy, type Policy, parsePolicy } from "./policy.js";
 import type { ModelProvider } from "./providers/types.js";
 import { buildChangeCard, renderScorecard } from "./render.js";
@@ -73,9 +74,18 @@ export async function runPipeline(input: PipelineInput): Promise<PipelineResult>
   const policy = await resolvePolicy(octokit, owner, repo, input.config.policyPath);
   const facts = await gatherFacts(octokit, owner, repo, number);
 
-  const assessment = await assessPullRequest(provider, facts);
+  const changedPaths = facts.changedFiles.map((f) => f.path);
+  let triageGuidelines: GuidelineSelection = { used: [], truncated: false };
+  let inlineGuidelines: GuidelineSelection = { used: [], truncated: false };
+  if (policy.guidelines.enabled) {
+    const all = await resolveGuidelines(octokit, owner, repo, policy);
+    triageGuidelines = selectGuidelines(all, changedPaths, "triage", policy.guidelines.max_chars);
+    inlineGuidelines = selectGuidelines(all, changedPaths, "inline", policy.guidelines.max_chars);
+  }
+
+  const assessment = await assessPullRequest(provider, facts, triageGuidelines.text);
   const decision = decide(facts, assessment, policy);
-  const scorecard = renderScorecard(facts, assessment, decision, modelLabel);
+  const scorecard = renderScorecard(facts, assessment, decision, modelLabel, triageGuidelines.used);
 
   let walkthrough: string | undefined;
   if (facts.additions + facts.deletions >= policy.explainer.min_changed_lines) {
@@ -89,6 +99,7 @@ export async function runPipeline(input: PipelineInput): Promise<PipelineResult>
       facts,
       assessment,
       policy.inline_suggestions.max_comments,
+      inlineGuidelines.text,
     );
     inline = anchorInlineComments(
       facts.changedFiles,

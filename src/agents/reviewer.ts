@@ -48,6 +48,7 @@ export async function proposeInlineComments(
   facts: PRFacts,
   assessment: TriageAssessment,
   maxComments: number,
+  guidelines?: string,
 ): Promise<RawInlineComment[]> {
   const diffs = facts.changedFiles
     .filter((f) => f.patch)
@@ -65,6 +66,7 @@ export async function proposeInlineComments(
     }`,
     "",
     `Produce at most ${maxComments} inline comments.`,
+    ...(guidelines ? ["", guidelines] : []),
     "",
     "## Annotated diff (gutter numbers are NEW-file line numbers)",
     diffs,

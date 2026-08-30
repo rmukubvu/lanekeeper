@@ -43,6 +43,14 @@ export const PolicySchema = z.object({
       max_comments: z.number().default(6),
     })
     .prefault({}),
+  guidelines: z
+    .object({
+      enabled: z.boolean().default(true),
+      packs: z.array(z.string()).default([]),
+      org_repo: z.string().default(""),
+      max_chars: z.number().default(6000),
+    })
+    .prefault({}),
   sentinel: z
     .object({
       enabled: z.boolean().default(true),

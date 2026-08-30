@@ -45,6 +45,13 @@ inline_suggestions:
   enabled: true
   max_comments: 6
 
+# Team & org standards injected into the agents (see the Team standards guide).
+guidelines:
+  enabled: true
+  packs: []             # e.g. [effective-go, react-hooks, owasp-top10]
+  org_repo: ""          # e.g. "my-org/.lanekeeper"
+  max_chars: 6000
+
 # Post-merge security scanning (see the Sentinel guide).
 sentinel:
   enabled: true

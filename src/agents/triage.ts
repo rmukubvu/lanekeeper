@@ -37,10 +37,12 @@ function failSafeAssessment(reason: string): TriageAssessment {
 export async function assessPullRequest(
   provider: ModelProvider,
   facts: PRFacts,
+  guidelines?: string,
 ): Promise<TriageAssessment> {
+  const user = guidelines ? `${renderFacts(facts)}\n\n${guidelines}` : renderFacts(facts);
   const result = await provider.structured(TriageAssessmentSchema, {
     system: SYSTEM,
-    user: renderFacts(facts),
+    user,
     schemaName: "triage_assessment",
   });
   return result.ok ? result.value : failSafeAssessment(result.reason);

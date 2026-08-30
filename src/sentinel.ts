@@ -10,6 +10,7 @@ import {
 } from "./agents/sentinel.js";
 import { notify } from "./chat/index.js";
 import type { ChangeCard, ChatAdapter } from "./chat/types.js";
+import { type GuidelineSelection, resolveGuidelines, selectGuidelines } from "./guidelines.js";
 import type { Policy } from "./policy.js";
 import type { ModelProvider } from "./providers/types.js";
 
@@ -217,7 +218,22 @@ export async function runSentinel(input: SentinelInput): Promise<SentinelResult>
     return { scanned, findings: [], droppedUnverified: 0, belowSeverity: 0 };
   }
 
-  const raw = await scanForFindings(provider, { owner, repo, commits: range.commits, files });
+  let guidelineSelection: GuidelineSelection = { used: [], truncated: false };
+  if (policy.guidelines.enabled) {
+    const all = await resolveGuidelines(octokit, owner, repo, policy);
+    guidelineSelection = selectGuidelines(
+      all,
+      files.map((f) => f.path),
+      "sentinel",
+      policy.guidelines.max_chars,
+    );
+  }
+
+  const raw = await scanForFindings(
+    provider,
+    { owner, repo, commits: range.commits, files },
+    guidelineSelection.text,
+  );
   const { verified, dropped } = verifyFindings(raw, contents);
   const findings = verified.filter((f) => meetsSeverity(f.severity, policy.sentinel.min_severity));
   const belowSeverity = verified.length - findings.length;
