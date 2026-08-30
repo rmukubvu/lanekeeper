@@ -1,0 +1,43 @@
+# Lanekeeper policy. Copy to `lanekeeper.yml` in the target repository's default
+# branch (preferred — policy lives with the code), or keep a local copy next to
+# the service as a fallback. Every field is optional; defaults shown here.
+version: 1
+
+# Lanes are decided in order: protected paths always force `deep`, then risk
+# thresholds pick the widest lane the change qualifies for.
+lanes:
+  auto: # eligible for hands-off handling (label + optional auto-merge)
+    max_risk: 20
+    categories: [docs, dependencies, tests] # every category of the PR must be in this list
+  fast: # a human should look, but briefly
+    max_risk: 45
+  # everything else lands in `deep`
+
+# Globs that always require deep human review, regardless of scores.
+protected_paths:
+  - ".github/workflows/**"
+  - "infra/**"
+
+# Post a guided layered walkthrough on PRs at or above this many changed lines.
+explainer:
+  min_changed_lines: 300
+
+labels:
+  prefix: lanekeeper # labels look like lanekeeper/lane:deep, lanekeeper/risk:high
+
+# Glob -> reviewers to request when matching files change. The PR author is
+# excluded automatically.
+reviewers: {}
+#  "src/api/**": [alice, bob]
+
+# Auto-merge is OFF by default. When enabled, PRs that land in the `auto` lane
+# with green CI get a recommendation comment; enabling actual merges is a
+# deliberate second step in code (see pipeline.ts).
+automerge:
+  enabled: false
+
+# Which chat adapters to notify per lane (teams | slack | discord).
+notifications:
+  deep: [teams]
+  fast: [teams]
+  auto: []
