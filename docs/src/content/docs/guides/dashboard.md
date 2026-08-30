@@ -21,6 +21,8 @@ In **GitHub App server mode** the same dashboard is served at `/` next to the we
 
 **Activity** — a timeline of every triage run, so you can see verdicts evolve as PRs are re-triaged.
 
+**Setup** — an onboarding wizard for governing a new repository: browse the built-in guideline packs (with rule previews served from `/api/packs`), tune lanes, protected paths, Sentinel, and notification routing, then copy a ready-to-commit `lanekeeper.yml` plus a starter team-guideline file. The wizard deliberately outputs config-as-code rather than mutating the server — policy belongs in git, and secrets (API keys, webhook URLs) stay in the server environment.
+
 Data refreshes automatically every 15 seconds; a header button forces it.
 
 ## The event log

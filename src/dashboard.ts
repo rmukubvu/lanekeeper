@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
+import { listAvailablePacks } from "./guidelines.js";
 import { riskBand } from "./policy.js";
 import type { EventStore, TriageEvent } from "./store.js";
 
@@ -173,6 +174,13 @@ export function handleDashboard(
     res
       .writeHead(200, { "content-type": "application/json" })
       .end(JSON.stringify({ queue: store.latestPerPR(), events: store.list(200) }));
+    return true;
+  }
+
+  if (url === "/api/packs") {
+    res
+      .writeHead(200, { "content-type": "application/json" })
+      .end(JSON.stringify({ packs: listAvailablePacks() }));
     return true;
   }
 

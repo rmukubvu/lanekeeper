@@ -28,6 +28,24 @@ export interface EventsResponse {
   events: TriageEvent[];
 }
 
+/** A built-in guideline pack, as served by /api/packs */
+export interface Pack {
+  id: string;
+  title: string;
+  paths: string[];
+  appliesTo: string[];
+  body: string;
+}
+
+export async function fetchPacks(): Promise<Pack[]> {
+  const res = await fetch("/api/packs");
+  if (!res.ok) {
+    throw new Error(`API request failed: ${res.status}`);
+  }
+  const data = (await res.json()) as { packs: Pack[] };
+  return data.packs;
+}
+
 export async function fetchEvents(): Promise<EventsResponse> {
   const res = await fetch("/api/events");
   if (!res.ok) {

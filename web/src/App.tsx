@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { CircleAlert, GitPullRequestArrow, History } from "lucide-react";
+import { CircleAlert, GitPullRequestArrow, History, Settings } from "lucide-react";
 import { useState } from "react";
 import { Activity } from "@/components/activity";
 import { AppHeader } from "@/components/app-header";
 import { Queue } from "@/components/queue";
+import { SetupWizard } from "@/components/setup";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UnderlineNav } from "@/components/underline-nav";
@@ -26,13 +27,16 @@ export default function App() {
           tabs={[
             { id: "queue", label: "Queue", icon: GitPullRequestArrow, count: data?.queue.length },
             { id: "activity", label: "Activity", icon: History, count: data?.events.length },
+            { id: "setup", label: "Setup", icon: Settings },
           ]}
           active={tab}
           onChange={setTab}
         />
 
         <div className="mt-4">
-          {isPending ? (
+          {tab === "setup" ? (
+            <SetupWizard />
+          ) : isPending ? (
             <div className="space-y-3 rounded-md border p-4">
               {[0, 1, 2, 3].map((i) => (
                 <div key={i} className="flex items-center gap-3">

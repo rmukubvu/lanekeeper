@@ -57,6 +57,21 @@ export function parseGuidelineFile(id: string, raw: string): Guideline {
   };
 }
 
+/** All bundled packs, for the dashboard's setup wizard and pack discovery. */
+export function listAvailablePacks(): Guideline[] {
+  if (!fs.existsSync(PACKS_DIR)) return [];
+  return fs
+    .readdirSync(PACKS_DIR)
+    .filter((f) => f.endsWith(".md"))
+    .sort()
+    .map((f) =>
+      parseGuidelineFile(
+        `pack:${f.replace(/\.md$/, "")}`,
+        fs.readFileSync(path.join(PACKS_DIR, f), "utf8"),
+      ),
+    );
+}
+
 export function loadPackGuidelines(packNames: string[]): Guideline[] {
   const guidelines: Guideline[] = [];
   for (const name of packNames) {

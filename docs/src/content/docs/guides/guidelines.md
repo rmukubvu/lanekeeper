@@ -16,6 +16,10 @@ Frontier models already know Effective Java, Go idioms, and the Rules of Hooks. 
 
 Standards are code: they change via pull requests, `CODEOWNERS` on `.lanekeeper/` gates who edits them, and Lanekeeper triages changes to its own guidelines.
 
+:::tip
+The dashboard's **Setup** tab has an onboarding wizard that previews every built-in pack and generates a ready-to-commit `lanekeeper.yml` with your selections — see [Dashboard](/guides/dashboard/).
+:::
+
 ## Writing a guideline
 
 A guideline is a markdown file with optional frontmatter:
