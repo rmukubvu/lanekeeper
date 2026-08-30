@@ -3,8 +3,9 @@ import { App, createNodeMiddleware, Octokit } from "octokit";
 import { buildAdapters } from "./chat/index.js";
 import { loadConfig } from "./config.js";
 import { handleDashboard } from "./dashboard.js";
-import { runPipeline } from "./pipeline.js";
+import { resolvePolicy, runPipeline } from "./pipeline.js";
 import { buildProvider } from "./providers/index.js";
+import { runSentinel } from "./sentinel.js";
 import { EventStore } from "./store.js";
 
 const config = loadConfig();
@@ -61,6 +62,44 @@ app.webhooks.on(
     }
   },
 );
+
+// Post-merge: every push to the default branch gets a Sentinel security scan
+// of exactly that commit range, opening deduplicated issues for findings.
+app.webhooks.on("push", async ({ octokit, payload }) => {
+  const branch = payload.ref.replace("refs/heads/", "");
+  if (branch !== payload.repository.default_branch) return;
+  if (payload.before.startsWith("0000000")) return; // branch creation, no range
+  const owner = payload.repository.owner?.login ?? payload.repository.owner?.name ?? "";
+  const repo = payload.repository.name;
+  if (!owner) return;
+  try {
+    const policy = await resolvePolicy(
+      octokit as unknown as Octokit,
+      owner,
+      repo,
+      config.policyPath,
+    );
+    if (!policy.sentinel.enabled) return;
+    console.log(
+      `sentinel scanning ${owner}/${repo} ${payload.before.slice(0, 8)}...${payload.after.slice(0, 8)}`,
+    );
+    const result = await runSentinel({
+      octokit: octokit as unknown as Octokit,
+      provider,
+      policy,
+      adapters,
+      owner,
+      repo,
+      basehead: `${payload.before}...${payload.after}`,
+      post: true,
+    });
+    console.log(
+      `sentinel ${owner}/${repo}: ${result.findings.length} finding(s), ${result.issues?.opened ?? 0} issue(s) opened`,
+    );
+  } catch (err) {
+    console.error(`sentinel failed for ${owner}/${repo}:`, err);
+  }
+});
 
 app.webhooks.onError((err) => console.error("webhook error:", err));
 

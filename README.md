@@ -6,6 +6,7 @@ Agentic change management for GitHub. As AI coding agents generate more pull req
 - **Policy as code** — a checked-in `lanekeeper.yml` decides what the scores *mean*: lane thresholds, protected paths that always need humans, reviewer routing, notification rules. The model scores; deterministic policy decides.
 - **Guided walkthroughs** — large diffs get a layered explanation (contracts → core logic → integration points → tests) posted as a PR comment, so reviewers read with judgment instead of scrolling.
 - **Inline fix suggestions** — the identified risks become inline review comments with GitHub ` ```suggestion ` blocks on the exact diff lines, one click to apply. Every anchor is verified deterministically against the parsed diff before posting; anything misanchored is dropped, never posted.
+- **Sentinel** — post-merge security scans of the default branch (authz/tenant boundaries, injection, secrets, data exposure, DoS, unsafe defaults) with full-file context the PR diff never had. Findings must cite verbatim evidence that is verified mechanically against the file; survivors become deduplicated GitHub issues.
 - **Chat adapters** — one neutral card model, rendered natively per platform: **Microsoft Teams** (Adaptive Cards), **Slack** (Block Kit), **Discord** (embeds). Adding a platform = implementing one interface ([src/chat/types.ts](src/chat/types.ts)).
 
 Works with github.com and GitHub Enterprise Server (set `GITHUB_API_URL`).
@@ -40,7 +41,7 @@ Add `--post` to write the labels + scorecard comment to the PR and notify config
 
 1. Create a GitHub App (org settings → Developer settings → GitHub Apps):
    - Permissions: **Pull requests: read/write**, **Contents: read**, **Checks: read**, **Issues: read/write**.
-   - Subscribe to **Pull request** events. Webhook URL: `https://<host>/api/github/webhooks`.
+   - Subscribe to **Pull request** and **Push** events. Webhook URL: `https://<host>/api/github/webhooks`.
 2. Copy `.env.example` to `.env`, fill in `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY_PATH`, `GITHUB_WEBHOOK_SECRET`.
 3. `npm run server`
 
@@ -78,6 +79,17 @@ npm run dashboard   # dashboard over your real data (.lanekeeper/)
 ```
 
 In server mode the same dashboard is served at `/` next to the webhook endpoint. `/api/events` exposes the raw JSON. For UI development, `npm --prefix web run dev` starts Vite with `/api` proxied to :4400. Without a build, the server falls back to a minimal server-rendered page.
+
+## Sentinel (post-merge)
+
+Pre-merge review sees a diff; Sentinel re-examines what actually landed, with the full current content of every changed file. In server mode, every push to the default branch triggers a scan of exactly that commit range. From the CLI, scan a time window:
+
+```bash
+npm run sentinel -- --repo owner/name --since 24        # dry run, hours
+npm run sentinel -- --repo owner/name --since 24 --post # open issues + notify chat
+```
+
+Findings are filed as GitHub issues labeled `lanekeeper/sentinel` + `lanekeeper/severity:*`, deduplicated by a fingerprint of file + category + evidence, so repeated scans never double-file. Two guardrails match the rest of Lanekeeper: every finding's cited evidence must appear verbatim in the scanned file (checked mechanically — fabricated citations are dropped), and `sentinel.min_severity` in the policy keeps low-grade noise out of the tracker.
 
 ## Chat setup
 
@@ -125,7 +137,6 @@ npm run lint:fix    # Biome with safe autofixes
 
 ## Roadmap
 
-- **Sentinel**: scheduled post-merge pass over recently changed areas (security/data-flow focus), opening issues with proposed fixes.
 - **History & trends**: charts over the recorded events — lead time per lane, risk over time, agent vs. human share.
 - **Reviewer-fit learning**: seed reviewer routing from git blame/CODEOWNERS instead of static globs.
 - **Two-way Teams bot**: Bot Framework app so reviewers can act (approve lane change, request walkthrough) from the card.

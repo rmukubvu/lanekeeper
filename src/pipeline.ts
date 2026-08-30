@@ -52,11 +52,16 @@ export interface PipelineResult {
 }
 
 /** Repo-level lanekeeper.yml wins; local file is the fallback; then defaults. */
-async function resolvePolicy(input: PipelineInput): Promise<Policy> {
-  const fromRepo = await fetchRepoPolicy(input.octokit, input.owner, input.repo);
+export async function resolvePolicy(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  localPolicyPath: string,
+): Promise<Policy> {
+  const fromRepo = await fetchRepoPolicy(octokit, owner, repo);
   if (fromRepo) return parsePolicy(fromRepo);
-  if (fs.existsSync(input.config.policyPath)) {
-    return parsePolicy(fs.readFileSync(input.config.policyPath, "utf8"));
+  if (fs.existsSync(localPolicyPath)) {
+    return parsePolicy(fs.readFileSync(localPolicyPath, "utf8"));
   }
   return defaultPolicy();
 }
@@ -65,7 +70,7 @@ export async function runPipeline(input: PipelineInput): Promise<PipelineResult>
   const { octokit, provider, adapters, owner, repo, number } = input;
   const modelLabel = `${provider.model} · ${provider.name}`;
 
-  const policy = await resolvePolicy(input);
+  const policy = await resolvePolicy(octokit, owner, repo, input.config.policyPath);
   const facts = await gatherFacts(octokit, owner, repo, number);
 
   const assessment = await assessPullRequest(provider, facts);

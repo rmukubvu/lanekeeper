@@ -43,9 +43,18 @@ export const PolicySchema = z.object({
       max_comments: z.number().default(6),
     })
     .prefault({}),
+  sentinel: z
+    .object({
+      enabled: z.boolean().default(true),
+      window_hours: z.number().default(24),
+      max_files: z.number().default(30),
+      min_severity: z.enum(["critical", "high", "medium", "low"]).default("medium"),
+      paths: z.array(z.string()).default([]),
+    })
+    .prefault({}),
   notifications: z
     .record(z.string(), z.array(z.string()))
-    .default({ deep: ["teams"], fast: ["teams"], auto: [] }),
+    .default({ deep: ["teams"], fast: ["teams"], auto: [], sentinel: ["teams"] }),
 });
 
 export type Policy = z.infer<typeof PolicySchema>;

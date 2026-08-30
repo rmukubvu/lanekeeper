@@ -37,6 +37,17 @@ inline_suggestions:
   enabled: true
   max_comments: 6
 
+# Sentinel: post-merge security scan of the default branch. Server mode scans
+# every push's exact commit range; the CLI scans a time window. Findings must
+# cite verbatim evidence (verified mechanically) and become deduplicated
+# GitHub issues labeled lanekeeper/sentinel.
+sentinel:
+  enabled: true
+  window_hours: 24 # CLI default lookback
+  max_files: 30
+  min_severity: medium # don't open issues below this
+  paths: [] # optional focus globs; empty = all changed files
+
 # Auto-merge is OFF by default. When enabled, PRs that land in the `auto` lane
 # with green CI get a recommendation comment; enabling actual merges is a
 # deliberate second step in code (see pipeline.ts).
@@ -48,3 +59,4 @@ notifications:
   deep: [teams]
   fast: [teams]
   auto: []
+  sentinel: [teams]
