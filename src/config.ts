@@ -1,5 +1,14 @@
 import fs from "node:fs";
 
+// Load .env from the working directory into process.env (existing environment
+// variables win). Every entry point goes through loadConfig, so this is the
+// single place .env support lives.
+try {
+  process.loadEnvFile();
+} catch {
+  // no .env file — environment variables only
+}
+
 export type ProviderKind = "anthropic" | "openrouter" | "openai-compatible";
 
 export interface AppConfig {
