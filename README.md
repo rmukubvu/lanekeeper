@@ -5,6 +5,7 @@ Agentic change management for GitHub. As AI coding agents generate more pull req
 - **Triage** — every PR is assessed by Claude (risk, value, urgency, blast radius, readiness) and routed into a **lane**: `auto`, `fast`, or `deep`.
 - **Policy as code** — a checked-in `lanekeeper.yml` decides what the scores *mean*: lane thresholds, protected paths that always need humans, reviewer routing, notification rules. The model scores; deterministic policy decides.
 - **Guided walkthroughs** — large diffs get a layered explanation (contracts → core logic → integration points → tests) posted as a PR comment, so reviewers read with judgment instead of scrolling.
+- **Inline fix suggestions** — the identified risks become inline review comments with GitHub ` ```suggestion ` blocks on the exact diff lines, one click to apply. Every anchor is verified deterministically against the parsed diff before posting; anything misanchored is dropped, never posted.
 - **Chat adapters** — one neutral card model, rendered natively per platform: **Microsoft Teams** (Adaptive Cards), **Slack** (Block Kit), **Discord** (embeds). Adding a platform = implementing one interface ([src/chat/types.ts](src/chat/types.ts)).
 
 Works with github.com and GitHub Enterprise Server (set `GITHUB_API_URL`).

@@ -1,11 +1,13 @@
 import { Octokit } from "octokit";
 import type { AppConfig } from "./config.js";
+import type { AnchoredComment } from "./diff.js";
 import type { ChangedFile, CheckSummary, Decision, PRFacts } from "./types.js";
 
 /** A comment we manage is identified by an invisible marker so we update it in place. */
 export const MARKERS = {
   scorecard: "<!-- lanekeeper:scorecard -->",
   walkthrough: "<!-- lanekeeper:walkthrough -->",
+  inline: "<!-- lanekeeper:inline -->",
 } as const;
 
 const PATCH_CHARS_PER_FILE = 6_000;
@@ -169,5 +171,79 @@ export async function applyDecision(
       // Requested users may not be collaborators — log and continue.
       console.warn(`could not request reviewers (${decision.reviewers.join(", ")}):`, err);
     }
+  }
+}
+
+export interface InlineReviewResult {
+  posted: number;
+  skippedExisting: number;
+  failed: number;
+}
+
+/**
+ * Post anchored inline comments as a single PR review. Lines already carrying
+ * a Lanekeeper inline comment are skipped so re-triage never spams. If GitHub
+ * rejects the batch (one bad anchor fails the whole review), comments are
+ * retried individually and only genuine rejects are dropped.
+ */
+export async function postInlineReview(
+  octokit: Octokit,
+  facts: PRFacts,
+  comments: AnchoredComment[],
+): Promise<InlineReviewResult> {
+  const existing = await octokit.paginate(octokit.rest.pulls.listReviewComments, {
+    owner: facts.owner,
+    repo: facts.repo,
+    pull_number: facts.number,
+    per_page: 100,
+  });
+  const taken = new Set(
+    existing
+      .filter((c) => c.body?.includes(MARKERS.inline))
+      .map((c) => `${c.path}:${c.line ?? c.original_line}`),
+  );
+  const fresh = comments.filter((c) => !taken.has(`${c.path}:${c.line}`));
+  const skippedExisting = comments.length - fresh.length;
+  if (fresh.length === 0) return { posted: 0, skippedExisting, failed: 0 };
+
+  const shaped = fresh.map((c) => ({
+    path: c.path,
+    line: c.line,
+    side: "RIGHT" as const,
+    ...(c.start_line ? { start_line: c.start_line, start_side: "RIGHT" as const } : {}),
+    body: c.body,
+  }));
+
+  try {
+    await octokit.rest.pulls.createReview({
+      owner: facts.owner,
+      repo: facts.repo,
+      pull_number: facts.number,
+      commit_id: facts.headSha,
+      event: "COMMENT",
+      body: `🛣️ **Lanekeeper** left ${shaped.length} inline suggestion${shaped.length === 1 ? "" : "s"} targeting the triage risk factors — apply directly or use as review pointers.`,
+      comments: shaped,
+    });
+    return { posted: shaped.length, skippedExisting, failed: 0 };
+  } catch {
+    let posted = 0;
+    for (const comment of shaped) {
+      try {
+        await octokit.rest.pulls.createReviewComment({
+          owner: facts.owner,
+          repo: facts.repo,
+          pull_number: facts.number,
+          commit_id: facts.headSha,
+          ...comment,
+        });
+        posted += 1;
+      } catch (err) {
+        console.warn(
+          `inline comment on ${comment.path}:${comment.line} rejected:`,
+          (err as Error).message,
+        );
+      }
+    }
+    return { posted, skippedExisting, failed: shaped.length - posted };
   }
 }

@@ -30,6 +30,13 @@ labels:
 reviewers: {}
 #  "src/api/**": [alice, bob]
 
+# Inline review comments with one-click GitHub suggestion blocks, anchored to
+# the exact diff lines behind the risk factors. Proposals that fail anchor
+# validation are dropped, never posted.
+inline_suggestions:
+  enabled: true
+  max_comments: 6
+
 # Auto-merge is OFF by default. When enabled, PRs that land in the `auto` lane
 # with green CI get a recommendation comment; enabling actual merges is a
 # deliberate second step in code (see pipeline.ts).

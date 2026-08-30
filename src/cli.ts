@@ -48,6 +48,24 @@ console.log(`\n${"=".repeat(72)}`);
 console.log(result.scorecard);
 console.log("=".repeat(72));
 console.log("\nDecision:", JSON.stringify(result.decision, null, 2));
+if (result.inline.comments.length > 0 || result.inline.dropped > 0) {
+  console.log(`\n${"=".repeat(72)}`);
+  console.log(
+    `Inline suggestions: ${result.inline.comments.length} anchored, ${result.inline.dropped} dropped by validation`,
+  );
+  for (const comment of result.inline.comments) {
+    const range = comment.start_line ? `${comment.start_line}-${comment.line}` : `${comment.line}`;
+    console.log(`\n--- ${comment.path}:${range}`);
+    console.log(comment.body);
+  }
+  if (result.inline.posted) {
+    const { posted, skippedExisting, failed } = result.inline.posted;
+    console.log(
+      `\nPosted ${posted} inline comment(s); ${skippedExisting} already present; ${failed} rejected by GitHub`,
+    );
+  }
+  console.log("=".repeat(72));
+}
 if (result.walkthrough) {
   console.log(`\n${"=".repeat(72)}`);
   console.log(result.walkthrough);

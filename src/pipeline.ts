@@ -1,11 +1,21 @@
 import fs from "node:fs";
 import type { Octokit } from "octokit";
 import { generateWalkthrough } from "./agents/explainer.js";
+import { proposeInlineComments } from "./agents/reviewer.js";
 import { assessPullRequest } from "./agents/triage.js";
 import { notify } from "./chat/index.js";
 import type { ChatAdapter } from "./chat/types.js";
 import type { AppConfig } from "./config.js";
-import { applyDecision, fetchRepoPolicy, gatherFacts, MARKERS, upsertComment } from "./github.js";
+import { type AnchoredComment, anchorInlineComments } from "./diff.js";
+import {
+  applyDecision,
+  fetchRepoPolicy,
+  gatherFacts,
+  type InlineReviewResult,
+  MARKERS,
+  postInlineReview,
+  upsertComment,
+} from "./github.js";
 import { decide, defaultPolicy, type Policy, parsePolicy } from "./policy.js";
 import type { ModelProvider } from "./providers/types.js";
 import { buildChangeCard, renderScorecard } from "./render.js";
@@ -33,6 +43,12 @@ export interface PipelineResult {
   decision: Decision;
   scorecard: string;
   walkthrough?: string;
+  inline: {
+    comments: AnchoredComment[];
+    /** Proposals the anchor validation rejected (never posted) */
+    dropped: number;
+    posted?: InlineReviewResult;
+  };
 }
 
 /** Repo-level lanekeeper.yml wins; local file is the fallback; then defaults. */
@@ -61,6 +77,22 @@ export async function runPipeline(input: PipelineInput): Promise<PipelineResult>
     walkthrough = await generateWalkthrough(provider, facts);
   }
 
+  let inline: PipelineResult["inline"] = { comments: [], dropped: 0 };
+  if (policy.inline_suggestions.enabled && facts.changedFiles.some((f) => f.patch)) {
+    const proposals = await proposeInlineComments(
+      provider,
+      facts,
+      assessment,
+      policy.inline_suggestions.max_comments,
+    );
+    inline = anchorInlineComments(
+      facts.changedFiles,
+      proposals,
+      policy.inline_suggestions.max_comments,
+      MARKERS.inline,
+    );
+  }
+
   input.store?.append({
     ts: new Date().toISOString(),
     owner,
@@ -86,11 +118,14 @@ export async function runPipeline(input: PipelineInput): Promise<PipelineResult>
     if (walkthrough) {
       await upsertComment(octokit, facts, walkthrough, MARKERS.walkthrough);
     }
+    if (inline.comments.length > 0) {
+      inline.posted = await postInlineReview(octokit, facts, inline.comments);
+    }
     await notify(adapters, decision.notifyAdapters, buildChangeCard(facts, assessment, decision));
     // Deliberately not implemented in v1: performing the merge itself.
     // decision.automerge only ever annotates; enabling real merges should be
     // an explicit, reviewed change (branch protection + merge queue first).
   }
 
-  return { policy, facts, assessment, decision, scorecard, walkthrough };
+  return { policy, facts, assessment, decision, scorecard, walkthrough, inline };
 }

@@ -49,6 +49,8 @@ describe("policy parsing", () => {
     expect(policy.lanes.fast.max_risk).toBe(45);
     expect(policy.automerge.enabled).toBe(false);
     expect(policy.labels.prefix).toBe("lanekeeper");
+    expect(policy.inline_suggestions.enabled).toBe(true);
+    expect(policy.inline_suggestions.max_comments).toBe(6);
   });
 
   it("parses partial YAML and fills the rest with defaults", () => {

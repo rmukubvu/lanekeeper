@@ -37,6 +37,12 @@ export const PolicySchema = z.object({
       enabled: z.boolean().default(false),
     })
     .prefault({}),
+  inline_suggestions: z
+    .object({
+      enabled: z.boolean().default(true),
+      max_comments: z.number().default(6),
+    })
+    .prefault({}),
   notifications: z
     .record(z.string(), z.array(z.string()))
     .default({ deep: ["teams"], fast: ["teams"], auto: [] }),
