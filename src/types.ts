@@ -78,6 +78,15 @@ export const TriageAssessmentSchema = z.object({
   review_focus: z
     .array(z.string())
     .describe("Ordered list of the specific places a human reviewer should look first"),
+  fix_suggestions: z
+    .array(
+      z.object({
+        concern: z.string().describe("The risk being addressed, in a few words"),
+        fix: z.string().describe("Concrete, actionable change that would reduce this risk"),
+        where: z.string().describe("File, function, or area where the fix applies"),
+      }),
+    )
+    .describe("Actionable remediations for the material risk factors; empty if none apply"),
   estimated_review_minutes: z
     .number()
     .int()

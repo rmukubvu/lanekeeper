@@ -36,6 +36,7 @@ function assessment(overrides: Partial<TriageAssessment> = {}): TriageAssessment
     readiness: "ready",
     risk_factors: [],
     review_focus: [],
+    fix_suggestions: [],
     estimated_review_minutes: 3,
     ...overrides,
   };

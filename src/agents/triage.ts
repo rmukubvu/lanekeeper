@@ -10,6 +10,7 @@ Score the pull request on these dimensions:
 - urgency_score: how time-sensitive merging is (security fixes, broken-build fixes, and blocking dependencies score high; cosmetic changes score low).
 - blast_radius, readiness, categories: as defined in the output schema.
 - review_focus: point the human at the exact files/hunks where a defect would hurt most.
+- fix_suggestions: for every material risk factor, the concrete remediation — the specific code change, missing test, config guard, or rollout step that would lower the risk. Cite the file or function in "where". Only suggest fixes grounded in what the diff actually shows; no generic advice.
 
 Be conservative: when the diff is truncated or context is missing, score risk higher and say so in risk_factors. Never assume unseen code is fine.`;
 
@@ -28,6 +29,7 @@ function failSafeAssessment(reason: string): TriageAssessment {
     readiness: "needs_work",
     risk_factors: [`automated assessment unavailable: ${reason}`],
     review_focus: ["Full manual review required — no automated assessment available."],
+    fix_suggestions: [],
     estimated_review_minutes: 30,
   };
 }

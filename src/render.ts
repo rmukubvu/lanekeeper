@@ -73,6 +73,13 @@ export function renderScorecard(
   if (assessment.review_focus.length > 0) {
     lines.push("", "**Review focus:**", ...assessment.review_focus.map((r, i) => `${i + 1}. ${r}`));
   }
+  if (assessment.fix_suggestions.length > 0) {
+    lines.push(
+      "",
+      "**How to reduce the risk:**",
+      ...assessment.fix_suggestions.map((s) => `- **${s.concern}** — ${s.fix} (_${s.where}_)`),
+    );
+  }
   if (decision.reviewers.length > 0) {
     lines.push("", `**Reviewers requested:** ${decision.reviewers.map((r) => `@${r}`).join(", ")}`);
   }
