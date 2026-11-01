@@ -143,6 +143,7 @@ npm run lint:fix    # Biome with safe autofixes
 - **History & trends**: charts over the recorded events — lead time per lane, risk over time, agent vs. human share.
 - **Reviewer-fit learning**: seed reviewer routing from git blame/CODEOWNERS instead of static globs.
 - **Two-way Teams bot**: Bot Framework app so reviewers can act (approve lane change, request walkthrough) from the card.
+- Draft pull requests from a reviewed specialist, on firerig/task branches, after the checks pass.
 
 ## Origin note
 
